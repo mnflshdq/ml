@@ -16,12 +16,15 @@ class LinearModel(nn.Module):
     def train(self, data, result, epochs, lr):
         def check_dim(tensor):
             if tensor.dim() == 1:
-                tensor.reshape(-1, 1)
-                return 1
+                tensor = tensor.reshape(-1, 1)
+                return tensor, 1
             else:
-                return tensor.shape[1]
+                return tensor, tensor.shape[1]
 
-        self.linear = nn.Linear(check_dim(data), check_dim(result))
+        data, input_size = check_dim(data)
+        result, output_size = check_dim(result)
+
+        self.linear = nn.Linear(input_size, output_size)
 
         batch_size = 100
         train_dataset = TensorDataset(data, result)
@@ -52,7 +55,6 @@ df.drop(["No", "X1 transaction date"], axis=1, inplace=True)
 
 data = torch.tensor(df.iloc[:, :-1].values, dtype=torch.float32)
 target = torch.tensor(df.iloc[:, -1].values, dtype=torch.float32)
-target = target.reshape(-1, 1)
 
 model = LinearModel()
 
