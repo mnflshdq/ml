@@ -8,30 +8,36 @@ from torch.utils.data import DataLoader
 class LinearModel(nn.Module):
     def __init__(self):
         super().__init__()
+        self.__data = torch.zeros(1)
+        self.__result = torch.zeros(1)
 
     def forward(self, data):
         output = self.linear(data)
         return output
 
     def train(self, data, result, epochs, lr):
-        def check_dim(tensor):
-            if tensor.dim() == 1:
-                tensor = tensor.reshape(-1, 1)
-                return tensor, 1
-            else:
-                return tensor, tensor.shape[1]
+        if not(torch.all(self.__data.eq(data)).item()) and not(torch.all(self.__data.eq(data)).item()):
+            def check_dim(tensor):
+                if tensor.dim() == 1:
+                    tensor = tensor.reshape(-1, 1)
+                    return tensor, 1
+                else:
+                    return tensor, tensor.shape[1]
 
-        data, input_size = check_dim(data)
-        result, output_size = check_dim(result)
+            data, input_size = check_dim(data)
+            result, output_size = check_dim(result)
 
-        self.linear = nn.Linear(input_size, output_size)
+            self.linear = nn.Linear(input_size, output_size)
 
-        batch_size = 100
-        train_dataset = TensorDataset(data, result)
-        train_loader = DataLoader(train_dataset, batch_size, shuffle=False)
+            batch_size = 100
+            train_dataset = TensorDataset(data, result)
+            self.__train_loader = DataLoader(train_dataset, batch_size, shuffle=True)
+            self.__data = data
+            self.__result = result
+
         optimizer = torch.optim.SGD(self.linear.parameters(), lr)
         for epoch in range(epochs):
-            for x, y in train_loader:
+            for x, y in self.__train_loader:
                 prediction = self(x)
                 self.loss = nn.functional.mse_loss(prediction, y)
                 self.loss.backward()
@@ -42,7 +48,7 @@ class LinearModel(nn.Module):
     def predict(self, data):
         return(self(data))
 
-    def reset_param(self):
+    def reset(self):
         for m in self.children():
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
                 m.reset_parameters()
@@ -59,7 +65,7 @@ target = torch.tensor(df.iloc[:, -1].values, dtype=torch.float32)
 model = LinearModel()
 
 # 100 training
-epochs = 100
+epochs = 60
 lr = 3e-8
 loss_history = list(model.train(data, target, epochs=epochs, lr=lr))
 print(model.loss)
@@ -67,9 +73,17 @@ plt.figure()
 plt.plot(np.arange(len(loss_history)), loss_history, "b", lw=2)
 plt.title("Epocs = {}, lr = {}".format(epochs, lr))
 
-model.reset_param()
+model.reset()
 # 1000 training
-epochs = 1000
+epochs = 500
+lr = 3e-8
+loss_history = list(model.train(data, target, epochs=epochs, lr=lr))
+print(model.loss)
+plt.figure()
+plt.plot(np.arange(len(loss_history)), loss_history, "b", lw=2)
+plt.title("Epocs = {}, lr = {}".format(epochs, lr))
+
+epochs = 500
 lr = 3e-8
 loss_history = list(model.train(data, target, epochs=epochs, lr=lr))
 print(model.loss)
