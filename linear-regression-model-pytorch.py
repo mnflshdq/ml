@@ -65,7 +65,7 @@ target = torch.tensor(df.iloc[:, -1].values, dtype=torch.float32)
 model = LinearModel()
 
 # 100 training
-epochs = 60
+epochs = 100
 lr = 3e-8
 loss_history = list(model.train(data, target, epochs=epochs, lr=lr))
 print(model.loss)
