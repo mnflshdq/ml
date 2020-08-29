@@ -16,7 +16,7 @@ class LinearModel(nn.Module):
         return output
 
     def train(self, data, result, epochs, lr):
-        if not(torch.all(self.__data.eq(data)).item()) and not(torch.all(self.__data.eq(data)).item()):
+        if not(torch.all(self.__data.eq(data)).item()) and not(torch.all(self.__result.eq(result)).item()):
             def check_dim(tensor):
                 if tensor.dim() == 1:
                     tensor = tensor.reshape(-1, 1)
